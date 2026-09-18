@@ -11,12 +11,23 @@ for this specific boundary in the backend report, not claimed as verified.
 from __future__ import annotations
 
 import json
+import re
 from datetime import date
 
 import boto3
 
 from app.config import get_settings
 from app.nlu.base import ExtractedAttendee, ExtractedCommitment, ExtractionResult
+
+_FENCED_JSON = re.compile(r"```(?:json)?\s*(\{.*\})\s*```", re.DOTALL)
+
+
+def _extract_json_object(raw: str) -> str:
+    """Some Bedrock text models (observed: Mistral) wrap their JSON answer in a
+    markdown code fence despite being told to respond with JSON only -- strip
+    that wrapper rather than failing to parse a genuinely correct extraction."""
+    match = _FENCED_JSON.search(raw)
+    return match.group(1) if match else raw
 
 _EXTRACTION_PROMPT = """Extract from the sales interaction note below:
 1. Every distinct attendee name mentioned (with company/role if stated).
@@ -53,7 +64,7 @@ class BedrockNLUClient:
     def extract(self, raw_text: str, reference_date: date) -> ExtractionResult:
         prompt = _EXTRACTION_PROMPT.format(reference_date=reference_date.isoformat(), raw_text=raw_text)
         raw = self._invoke_text_model(prompt)
-        data = json.loads(raw)
+        data = json.loads(_extract_json_object(raw))
         attendees = [
             ExtractedAttendee(name=a["name"], company=a.get("company"), role=a.get("role"))
             for a in data.get("attendees", [])

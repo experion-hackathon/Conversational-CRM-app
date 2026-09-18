@@ -3,11 +3,6 @@ import { api, ApiError } from '../api/client'
 
 interface AuthContextValue {
   isAuthenticated: boolean
-  /** The username typed at login, for display only (e.g. "Welcome back, X") --
-   * this app has one shared credential (SEC-1), not per-person accounts, so
-   * this is whatever was typed, not a verified individual identity. Resets on
-   * reload along with isAuthenticated (see the note below). */
-  username: string | null
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   /** Any API call that gets a 401 should call this instead of throwing further up unhandled. */
@@ -26,12 +21,10 @@ const AuthContext = createContext<AuthContextValue | null>(null)
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [username, setUsername] = useState<string | null>(null)
 
   const login = useCallback(async (username: string, password: string) => {
     await api.login(username, password)
     setIsAuthenticated(true)
-    setUsername(username)
   }, [])
 
   const logout = useCallback(async () => {
@@ -39,18 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await api.logout()
     } finally {
       setIsAuthenticated(false)
-      setUsername(null)
     }
   }, [])
 
-  const handleUnauthenticated = useCallback(() => {
-    setIsAuthenticated(false)
-    setUsername(null)
-  }, [])
+  const handleUnauthenticated = useCallback(() => setIsAuthenticated(false), [])
 
   const value = useMemo(
-    () => ({ isAuthenticated, username, login, logout, handleUnauthenticated }),
-    [isAuthenticated, username, login, logout, handleUnauthenticated],
+    () => ({ isAuthenticated, login, logout, handleUnauthenticated }),
+    [isAuthenticated, login, logout, handleUnauthenticated],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

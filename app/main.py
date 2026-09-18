@@ -5,9 +5,11 @@ Run: uvicorn app.main:app --reload
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import OperationalError
 
+from app.config import get_settings
 from app.database import init_engine
 from app.routers import accounts, auth_router, briefs, commitments, interactions, qa
 from app.schemas import ErrorCode, ErrorResponse
@@ -20,6 +22,16 @@ async def _lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Conversational CRM API", version="2.0.0", lifespan=_lifespan)
+
+_cors_origins = get_settings().cors_allowed_origins
+if _cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=list(_cors_origins),
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 @app.exception_handler(HTTPException)

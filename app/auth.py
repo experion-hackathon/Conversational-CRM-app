@@ -112,7 +112,7 @@ def set_session_cookie(response: Response, token: str) -> None:
         value=token,
         httponly=True,
         secure=True,
-        samesite="strict",
+        samesite=get_settings().cookie_samesite,
         max_age=ABSOLUTE_TIMEOUT_SECONDS,
     )
 

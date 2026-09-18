@@ -29,6 +29,18 @@ class Settings:
     login_lockout_attempts: int = field(default_factory=lambda: int(os.environ.get("LOGIN_LOCKOUT_ATTEMPTS", "5")))
     login_lockout_window_minutes: int = field(default_factory=lambda: int(os.environ.get("LOGIN_LOCKOUT_WINDOW_MINUTES", "15")))
 
+    # Comma-separated list of allowed frontend origins (e.g. the Vercel deployment
+    # URL(s)). Empty by default -- same-origin/local dev needs no CORS at all.
+    cors_allowed_origins: tuple[str, ...] = field(
+        default_factory=lambda: tuple(
+            o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()
+        )
+    )
+    # "strict" for same-site deployments (default); must be "none" when the
+    # frontend and backend are on different origins (e.g. Vercel + Render),
+    # since a Strict/Lax cookie is never sent on a cross-site request.
+    cookie_samesite: str = field(default_factory=lambda: os.environ.get("COOKIE_SAMESITE", "strict"))
+
 
 def get_settings() -> Settings:
     # Re-read on every call so tests can monkeypatch os.environ per-test.
