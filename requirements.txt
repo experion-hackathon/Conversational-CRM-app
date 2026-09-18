@@ -1,0 +1,14 @@
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+pydantic==2.*
+SQLAlchemy==2.0.54
+chromadb==1.5.9
+boto3==1.43.97
+python-multipart
+itsdangerous
+
+# Dev/test only
+pytest==9.1.1
+httpx==0.28.1
+ruff==0.16.8
+mypy==2.3.1

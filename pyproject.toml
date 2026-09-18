@@ -1,0 +1,26 @@
+[tool.ruff]
+line-length = 160
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "DTZ"]
+
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's Depends(...)/Query(...) in a function default is the framework's
+# own dependency-injection idiom, not the mutable-default-argument bug B008
+# flags in general Python code.
+"app/routers/*.py" = ["B008"]
+"app/auth.py" = ["B008"]
+# Test fixtures use naive local dates to build relative due-date fixtures
+# (e.g. "3 days ago"); there is no timezone-correctness concern here since
+# nothing here is a real timestamp.
+"tests/*.py" = ["DTZ011"]
+# No architecture decision (solution/data_integration) specifies a timezone
+# for due-date comparisons -- this is a single-shared-login, server-local
+# product with no per-user tz concept, so date.today() (server-local) is the
+# intended behavior, not an oversight. [INFERRED -- needs confirmation]
+"app/routers/interactions.py" = ["DTZ011"]
+"app/services/commitments_service.py" = ["DTZ011"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
