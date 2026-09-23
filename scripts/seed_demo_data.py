@@ -5,14 +5,15 @@ UI something to show. Talks to the real running HTTP API, same as a genuine
 client would; does not touch the database directly. Safe to re-run (each
 capture is additive).
 """
+import os
 import sys
 import time
 
 import httpx
 
-BASE_URL = "http://127.0.0.1:8000"
-USERNAME = "demo"
-PASSWORD = "demo-password-123"
+BASE_URL = os.environ.get("SEED_BASE_URL", "http://127.0.0.1:8000")
+USERNAME = os.environ.get("SEED_USERNAME", "demo")
+PASSWORD = os.environ.get("SEED_PASSWORD", "demo-password-123")
 
 NOTES = [
     # Matched to Acme, with attendees + a dated commitment
